@@ -1,0 +1,10 @@
+services:
+  db:
+    image: postgres:17
+    container_name: postgresql-for-rest-open-api
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: dev
+    ports:
+      - "25432:5432"
