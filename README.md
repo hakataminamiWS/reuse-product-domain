@@ -135,8 +135,8 @@ DB
 
 ##  5. <a name='-1'></a>試作
 ###  5.1. <a name='githubURL:'></a>検証用 github URL:
+https://github.com/hakataminamiWS/reuse-product-domain/tree/main
 
-https://
 
 ###  5.2. <a name='-1'></a>動かし方
 ####  5.2.1. <a name='VueSpringBoot'></a>Vue を Spring Boot から配信
