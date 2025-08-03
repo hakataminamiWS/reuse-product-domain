@@ -1,21 +1,24 @@
-<script setup>
+<script setup lang="ts">
+import type { Ref } from 'vue';
 import { ref } from 'vue';
-import AttributeCreateForm from '@/components/AttributeCreateForm.vue'
-import { fetchAttributes } from '@/api/attribute.js'
 
-const attributes = ref([])
-const showForm = ref(false)
+import AttributeCreateForm from '@/components/AttributeCreateForm.vue';
+import type { Attribute } from '@/types/api/attribute';
+import { fetchAttributes } from '@/api/attribute';
+
+const attributes: Ref<Attribute[]> = ref([]);
 
 async function refreshList() {
     try {
-        attributes.value = await fetchAttributes()
+        attributes.value = await fetchAttributes();
     } catch (e) {
-        alert('属性の取得に失敗しました: ' + e.message)
+        const message = e instanceof Error ? e.message : String(e);
+        alert('属性の取得に失敗しました: ' + message);
     }
 }
 
 function onCreated() {
-    refreshList()
+    refreshList();
 }
 </script>
 

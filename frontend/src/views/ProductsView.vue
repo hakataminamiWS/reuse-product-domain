@@ -1,16 +1,20 @@
-<script setup>
+<script setup lang="ts">
+import type { Ref } from 'vue';
 import { ref } from 'vue';
-import ProductCreateForm from '@/components/ProductCreateForm.vue';
-import { fetchProducts } from '@/api/product.js';
 
-const products = ref([]);
-const showForm = ref(false);
+
+import ProductCreateForm from '@/components/ProductCreateForm.vue';
+import type { Product } from '@/types/api/product';
+import { fetchProducts } from '@/api/product';
+
+const products: Ref<Product[]> = ref([]);
 
 async function refreshList() {
     try {
         products.value = await fetchProducts();
     } catch (e) {
-        alert('商品の取得に失敗しました: ' + e.message);
+        const message = e instanceof Error ? e.message : String(e);
+        alert('商品の取得に失敗しました: ' + message);
     }
 }
 

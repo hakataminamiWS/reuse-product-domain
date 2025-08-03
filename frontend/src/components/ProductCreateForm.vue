@@ -1,50 +1,66 @@
-<script setup>
-import { reactive } from 'vue'
-import { createProduct } from '@/api/product.js'
+<script setup lang="ts">
+import { reactive } from 'vue';
 
-const emit = defineEmits(['created'])
+import { createProduct } from '@/api/product';
+import type { CreateProductPayload } from '@/types/api/product';
 
-const form = reactive({
+const emit = defineEmits<{
+    (e: 'created'): void;
+}>();
+
+type ProductFormState = {
+    name: string;
+    widthMm: number | null;
+    productAttributesArray: {
+        key: string;
+        value: string;
+    }[];
+};
+
+const form = reactive<ProductFormState>({
     name: '',
     widthMm: 0,
-    productAttributes: [
-        { key: '', value: '' }
-    ],
-})
+    productAttributesArray: [],
+});
 
 function addAttribute() {
-    form.productAttributes.push({ key: '', value: '' });
+    form.productAttributesArray.push({ key: '', value: '' });
 }
-function removeAttribute(index) {
-    form.productAttributes.splice(index, 1);
+function removeAttribute(index: number) {
+    form.productAttributesArray.splice(index, 1);
 }
 
 async function onSubmit() {
     try {
-        const productAttributesJson = {};
-        form.productAttributes.forEach(({ key, value }) => {
-            if (key.trim() !== '') {
-                productAttributesJson[key.trim()] = value;
-            }
-        });
+        const productAttributes = new Map<string, string>();
 
-        const payload = {
-            name: form.name,
-            widthMm: form.widthMm,
-            productAttributes: productAttributesJson,
+        for (const { key, value } of form.productAttributesArray) {
+            const k = key.trim();
+            if (!k) continue;
+
+            if (productAttributes.has(k)) {
+                throw new Error(`属性のキー "${k}" が重複しています。`);
+            }
+            productAttributes.set(k, value);
         }
 
-        await createProduct(payload)
-        emit('created')
-        form.name = ''
-        form.widthMm = 0
-        form.productAttributesJson = '{}'
+        const payload: CreateProductPayload = {
+            name: form.name,
+            widthMm: form.widthMm,
+            productAttributes,
+        };
+
+        await createProduct(payload);
+        emit('created');
+        form.name = '';
+        form.widthMm = 0;
+        form.productAttributesArray = [];
     } catch (error) {
-        alert('登録に失敗しました: ' + error.message)
+        const message = error instanceof Error ? error.message : String(error);
+        alert('登録に失敗しました: ' + message);
     }
 }
 </script>
-
 
 <template>
     <form @submit.prevent="onSubmit">
@@ -58,7 +74,7 @@ async function onSubmit() {
         </div>
         <div>
             <label>属性 (複数入力可):</label>
-            <table border="1" style="margin-top: 0.5em;">
+            <table border="1" style="margin-top: 0.5em">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -67,19 +83,25 @@ async function onSubmit() {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(attr, index) in form.productAttributes" :key="index">
-                        <td><input v-model="attr.key" placeholder="例: color" /></td>
-                        <td><input v-model="attr.value" placeholder="例: red" /></td>
+                    <tr v-for="(attr, index) in form.productAttributesArray" :key="index">
                         <td>
-                            <button type="button" @click="removeAttribute(index)"
-                                    :disabled="form.productAttributes.length === 1">
+                            <input v-model="attr.key" placeholder="例: color" />
+                        </td>
+                        <td>
+                            <input v-model="attr.value" placeholder="例: red" />
+                        </td>
+                        <td>
+                            <button
+                                    type="button"
+                                    @click="removeAttribute(index)"
+                                    :disabled="form.productAttributesArray.length === 1">
                                 削除
                             </button>
                         </td>
                     </tr>
                 </tbody>
             </table>
-            <button type="button" @click="addAttribute" style="margin-top: 0.5em;">属性行を追加</button>
+            <button type="button" @click="addAttribute" style="margin-top: 0.5em">属性行を追加</button>
         </div>
         <button type="submit">登録</button>
     </form>

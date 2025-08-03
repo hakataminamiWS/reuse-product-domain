@@ -1,27 +1,28 @@
-<script setup>
-import { reactive } from 'vue'
-import { createAttribute } from '@/api/attribute.js'
+<script setup lang="ts">
+import { reactive } from 'vue';
 
-const emit = defineEmits(['created'])
+import { attributeTypes } from '@/types/api/attribute';
+import { createAttribute } from '@/api/attribute';
+import type { CreateAttributePayload } from '@/types/api/attribute';
 
-const form = reactive({
+const emit = defineEmits<{
+    (e: 'created'): void
+}>();
+
+const form = reactive<CreateAttributePayload>({
     name: '',
-    type: '',
-})
+    type: 'text', // default
+});
 
 async function onSubmit() {
     try {
-        const payload = {
-            name: form.name,
-            type: form.type,
-        }
-
-        await createAttribute(payload)
-        emit('created')
-        form.name = ''
-        form.type = ''
+        await createAttribute({ ...form });
+        emit('created');
+        form.name = '';
+        form.type = 'text';
     } catch (error) {
-        alert('登録に失敗しました: ' + error.message)
+        const message = error instanceof Error ? error.message : String(error);
+        alert('登録に失敗しました: ' + message);
     }
 }
 </script>
@@ -34,7 +35,13 @@ async function onSubmit() {
         </div>
         <div>
             <label for="type">Type:</label>
-            <input id="type" v-model="form.type" required />
+            <select id="type" v-model="form.type" required>
+                <option v-for="t in attributeTypes"
+                        :key="t"
+                        :value="t">
+                    {{ t }}
+                </option>
+            </select>
         </div>
         <button type="submit">登録</button>
     </form>
